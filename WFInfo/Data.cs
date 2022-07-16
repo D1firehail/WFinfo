@@ -59,7 +59,7 @@ namespace WFInfo
         private readonly WebSocket marketSocket = new WebSocket("wss://warframe.market/socket?platform=pc");
         private readonly string filterAllJSON = "https://docs.google.com/uc?id=1w_cSmhsULIoSt4tyNgnh7xY2N98Mfpbf&export=download";
         public string inGameName = string.Empty;
-        static readonly HttpClient client = new HttpClient();
+        static HttpClient client = new HttpClient();
         readonly WebClient WebClient;
         private readonly Sheets sheetsApi;
         private string githubVersion;
@@ -223,7 +223,7 @@ namespace WFInfo
 
             sheet = sheetsApi.GetSheet("prices!A:I");
 
-
+            /*
             foreach (IList<object> row in sheet)
             {
                 string name = row[0].ToString();
@@ -236,7 +236,7 @@ namespace WFInfo
                         {"volume", int.Parse(row[4].ToString(), Main.culture) + int.Parse(row[6].ToString(), Main.culture)}
                     };
                 }
-            }
+            }*/
 
             // Add default values for ignored items
             foreach (KeyValuePair<string, JToken> ignored in allFiltered["ignored_items"].ToObject<JObject>())
@@ -255,12 +255,12 @@ namespace WFInfo
         private void LoadMarketItem(string item_name, string url)
         {
             Main.AddLog("Load missing market item: " + item_name);
-
+            System.Threading.Thread.Sleep(333);
             JObject stats =
                 JsonConvert.DeserializeObject<JObject>(
                     WebClient.DownloadString("https://api.warframe.market/v1/items/" + url + "/statistics"));
             stats = stats["payload"]["statistics_closed"]["90days"].Last.ToObject<JObject>();
-
+            System.Threading.Thread.Sleep(333);
             JObject ducats = JsonConvert.DeserializeObject<JObject>(
                 WebClient.DownloadString("https://api.warframe.market/v1/items/" + url));
             ducats = ducats["payload"]["item"].ToObject<JObject>();
@@ -1079,12 +1079,21 @@ namespace WFInfo
             if (response.IsSuccessStatusCode)
             {
                 SetJWT(response.Headers);
-                await OpenWebSocket();
+
+                if(await IsJWTvalid())
+                {
+                    await OpenWebSocket();
+                } else
+                {
+                    throw new Exception("GetUserLogin: valid login but anonymous JWT");
+                }
             }
             else
             {
                 Regex rgx = new Regex("[a-zA-Z0-9]");
                 string censoredEmail = rgx.Replace(email, "*");
+                client.Dispose();
+                client = new HttpClient();
                 throw new Exception("GetUserLogin, " + responseBody + $"Email: {censoredEmail}, Pw length: {password.Length}");
             }
             request.Dispose();
@@ -1099,7 +1108,7 @@ namespace WFInfo
         {
         #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
             Main.AddLog("Connecting to websocket");
-            marketSocket.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
+            marketSocket.SslConfiguration.EnabledSslProtocols = SslProtocols.None;
 
             if (marketSocket.IsAlive)
             {
@@ -1162,6 +1171,7 @@ namespace WFInfo
                 JWT = temp.Substring(4);
                 return;
             }
+            Main.AddLog("SetJWT Failed: no matching header");
         }
 
         /// <summary>
@@ -1401,7 +1411,7 @@ namespace WFInfo
                     SetJWT(response.Headers);
                     var profile = JsonConvert.DeserializeObject<JObject>(await response.Content.ReadAsStringAsync());
                     profile["profile"]["check_code"] = "REDACTED"; // remnove the code that can compromise an account.
-                    Main.AddLog($"JWT check response: {profile["profile"]}");
+                    Main.AddLog("JWT check response: " + profile["profile"].ToString(Formatting.None));
                     return !(bool)profile["profile"]["anonymous"];
                 }
             }

@@ -831,7 +831,7 @@ namespace WFInfo
                 JObject job = Main.dataBase.marketData.GetValue(name).ToObject<JObject>();
                 string plat = job["plat"].ToObject<string>();
                 string ducats = job["ducats"].ToObject<string>();
-                string volume = job["volume"].ToObject<string>();
+                string volume = "bugged";// job["volume"].ToObject<string>();
                 bool vaulted = Main.dataBase.IsPartVaulted(name);
                 bool mastered = Main.dataBase.IsPartMastered(name);
                 string partsOwned = Main.dataBase.PartsOwned(name);
@@ -1535,6 +1535,8 @@ namespace WFInfo
                     {
                         if (probeProfilePixel(LockedBitmapBytes, imgWidth, x, y, false) )
                         {
+                            if (x > 1570 && x < 1600 + probe_interval && y > 770 && y < 800)
+                                x = x;
                             //find left edge and check that the coloured area is at least as big as probe_interval
                             int leftEdge = -1;
                             int hits = 0;
@@ -1609,7 +1611,7 @@ namespace WFInfo
                                 hitRatio = hits / (double)(rightEdge - leftEdge );
                                 hitRatios.Add(hitRatio);
 
-                                if (hitRatio > 0.5 && rightMostHit+1 < rightEdge && rightEdge - leftEdge > 100) //make sure the innermost right edge is used (avoid bright part of frame overlapping with edge)
+                                if (hitRatio > 0.3 && rightMostHit+1 < rightEdge && rightEdge - leftEdge > 100) //make sure the innermost right edge is used (avoid bright part of frame overlapping with edge)
                                 {
                                     g.DrawLine(red, rightEdge, bottomEdge, rightMostHit, bottomEdge);
                                     rightEdge = rightMostHit;
@@ -1617,7 +1619,7 @@ namespace WFInfo
                                     hitRatios.Clear();
                                     hitRatios.Add(1);
                                 }
-                                if (hitRatio > 0.5 && leftMostHit > leftEdge && rightEdge - leftEdge > 100) //make sure the innermost left edge is used (avoid bright part of frame overlapping with edge)
+                                if (hitRatio > 0.3 && leftMostHit > leftEdge && rightEdge - leftEdge > 100) //make sure the innermost left edge is used (avoid bright part of frame overlapping with edge)
                                 {
                                     g.DrawLine(red, leftEdge, bottomEdge, leftMostHit, bottomEdge);
                                     leftEdge = leftMostHit;
@@ -1625,7 +1627,7 @@ namespace WFInfo
                                     hitRatios.Clear();
                                     hitRatios.Add(1);
                                 }
-                            } while (bottomEdge+2 < ProfileImageClean.Height && hitRatios.Last() > 0.5);
+                            } while (bottomEdge+2 < ProfileImageClean.Height && hitRatios.Last() > 0.3);
                             hitRatios.RemoveAt(hitRatios.Count - 1);
                             //find if/where it transitions from text (some misses) to no text (basically no misses) then back to text (some misses). This is proof it's an owned item and marks the bottom edge of the text
                             int ratioChanges = 0;
@@ -1648,7 +1650,7 @@ namespace WFInfo
                             int width = rightEdge - leftEdge;
                             int height = bottomEdge - topEdge;
 
-                            if (ratioChanges != 4 || width < 4 * height || width > 6 * height)
+                            if ((ratioChanges != 4 && ratioChanges != 6)|| width < 2 * height || width > 6 * height)
                             {
                                 g.DrawRectangle(pink, leftEdge, topEdge, width, height);
                                 x = Math.Max(rightEdge, x);
@@ -2148,8 +2150,24 @@ namespace WFInfo
         public static string GetTextFromImage(Bitmap image, TesseractEngine engine)
         {
             string ret = "";
-            using (Page page = engine.Process(image))
-                ret = page.GetText().Trim();
+            using (Page page = engine.Process(image, PageSegMode.SparseText))
+            {
+                using (var iterator = page.GetIterator())
+                {
+                    iterator.Begin();
+                    do
+                    {
+                        string currentWord = iterator.GetText(PageIteratorLevel.TextLine);
+                        if (currentWord != null)
+                        {
+                            ret += currentWord.Trim();
+                        }
+                    } while (iterator.Next(PageIteratorLevel.TextLine));
+                }
+                //ret = page.GetText().Trim();
+            }
+
+
             return RE.Replace(ret, "").Trim();
         }
 

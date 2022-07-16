@@ -93,6 +93,11 @@ namespace WFInfo
                     StatusMessage = "Severe issue, server did not understand request";
                     StatusSeverity = 1;
                 }
+                else if (ex.Message.Contains("anonymous JWT"))
+                {
+                    StatusMessage = "Valid login details, but anonymous account " +Environment.NewLine + " or random login failure";
+                    StatusSeverity = 2;
+                }
                 else
                 {
                     StatusMessage = "Too many requests";

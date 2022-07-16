@@ -102,7 +102,7 @@ namespace WFInfo
         }
         private static async void TimeoutCheck()
         {
-            if (!await dataBase.IsJWTvalid().ConfigureAwait(true))
+            if (!dataBase.IsJwtLoggedIn())
                 return;
             DateTime now = DateTime.UtcNow;
             Debug.WriteLine($"Checking if the user has been inactive \nNow: {now}, Lastactive: {latestActive}");
@@ -113,8 +113,6 @@ namespace WFInfo
 
                 await Task.Run(async () =>
                 {
-                    if (!await dataBase.IsJWTvalid().ConfigureAwait(true))
-                        return;
                     //IDE0058 - computed value is never used.  Ever. Consider changing the return signature of SetWebsocketStatus to void instead
                     await dataBase.SetWebsocketStatus("invisible").ConfigureAwait(false);
                     StatusUpdate("WFM status set offline, Warframe was closed", 0);
