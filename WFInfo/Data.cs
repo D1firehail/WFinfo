@@ -890,6 +890,12 @@ namespace WFInfo
             foreach (KeyValuePair<string, JToken> prop in nameData)
             {
                 int val = LevenshteinDistance(prop.Key, name);
+                if (prop.Key.StartsWith("Ivara"))
+                {
+                    Regex NtoIv = new Regex("N");
+                    string tmpName = NtoIv.Replace(name, "Iv", 1);
+                    val = Math.Min(val, LevenshteinDistance(prop.Key, tmpName));
+                }
                 if (val < low)
                 {
                     low = val;
