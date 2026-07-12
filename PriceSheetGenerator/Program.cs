@@ -27,6 +27,10 @@ namespace PriceSheetGenerator
             var saveIntervalFound = false;
             var saveInterval = 0; // cycles between state and output being saved to file
 
+            const string backupArgName = "-backup";
+            var backupFound = false;
+            var backup = true;
+
             const string internalDataDirArgName = "-data_dir";
             var internalDataDirFound = false;
             string? internalDataDir = null;
@@ -54,6 +58,7 @@ namespace PriceSheetGenerator
                         cycleTimeArgName + " (number in milliseconds) : Time delay between cycles. Default 60 seconds." + Environment.NewLine +
                         cycleStepsArgName + " (number) : Item fetches per cycle. Default 3." + Environment.NewLine + 
                         saveIntervalArgName + " (number) : Cycles between each save, covering output and internal state. Default 0." + Environment.NewLine +
+                        backupArgName + " (bool) : Previous content moved to .bak instead of deleted on save. Default true." + Environment.NewLine +
                         statusIntervalArgName + " (number) : Cycles between status reports. Default 100." + Environment.NewLine +
                         internalDataDirArgName + " (directory path) : Directory to save internal state between runs. Default executable dir" + Environment.NewLine +
                         outputArgName + " (file path) : File to save output to. Default (executable dir)/prices.json.");
@@ -177,6 +182,23 @@ namespace PriceSheetGenerator
                     continue;
                 }
 
+                if (currArg.Equals(backupArgName, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    MarkArgumentFound(backupArgName, ref backupFound);
+
+                    if (nextArg is null)
+                    {
+                        ExitParameterRequired(backupArgName);
+                    }
+
+                    if (!bool.TryParse(nextArg, out backup))
+                    {
+                        ExitUnrecognizedParameter(backupArgName, nextArg);
+                    }
+                    i++; // increment due to parameter
+                    continue;
+                }
+
                 Console.WriteLine("Unknown argument, see -help for usage. Argument: " + currArg);
                 Environment.Exit(1);
             }
@@ -225,6 +247,7 @@ namespace PriceSheetGenerator
                         cycleTimeArgName + " " + cycleTimeMs + Environment.NewLine +
                         cycleStepsArgName + " " + cycleSteps + Environment.NewLine +
                         saveIntervalArgName + " " + saveInterval + Environment.NewLine +
+                        backupArgName + " " + backup + Environment.NewLine +
                         statusIntervalArgName + " " + statusInterval + Environment.NewLine +
                         internalDataDirArgName + " " + internalDataDir + Environment.NewLine +
                         outputArgName + " " + outputPath);
@@ -236,6 +259,8 @@ namespace PriceSheetGenerator
                 Console.WriteLine("Failed to load previous state, starting clean");
                 sheet = new PriceSheetInternal();
             }
+
+            sheet.KeepBackup = backup;
 
             // threading approach: 
             // semaphore for processor

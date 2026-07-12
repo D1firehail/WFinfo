@@ -30,6 +30,7 @@ namespace PriceSheetGenerator
         public SemaphoreSlim Sema { get; }
 
         public DateTime LatestSyncTime { get; private set; }
+        public bool KeepBackup { get; set; }
 
         public void GetItemStates(out int totalCount, out int deletedCount, out int missingStatsCount)
         {
@@ -261,27 +262,7 @@ namespace PriceSheetGenerator
                 }
             }
 
-            var bakPath = filePath + ".bak";
-
-            if (File.Exists(bakPath))
-            {
-                File.Delete(bakPath);
-            }
-
-            if (File.Exists(filePath))
-            {
-                File.Move(filePath, bakPath);
-            }
-
-            var serializerOptions = new JsonSerializerOptions()
-            {
-                WriteIndented = false
-            };
-
-            var outputString = obj.ToJsonString(serializerOptions);
-
-            File.WriteAllText(filePath, outputString);
-
+            obj.WriteToFile(filePath, KeepBackup);
         }
 
         private void SaveInternal(string filePath)
@@ -302,27 +283,7 @@ namespace PriceSheetGenerator
                 [EntriesSaveName] = entries
             };
 
-            var bakPath = filePath + ".bak";
-
-            if (File.Exists(bakPath))
-            {
-                File.Delete(bakPath);
-            }
-
-            if (File.Exists(filePath))
-            {
-                File.Move(filePath, bakPath);
-            }
-
-            var serializerOptions = new JsonSerializerOptions()
-            {
-                WriteIndented = false
-            };
-
-            var outputString = obj.ToJsonString(serializerOptions);
-
-            File.WriteAllText(filePath, outputString);
-
+            obj.WriteToFile(filePath, KeepBackup);
         }
         
     }

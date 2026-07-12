@@ -66,5 +66,27 @@ namespace PriceSheetGenerator
 
             return value;
         }
+
+        public static void WriteToFile(this JsonNode jsonObject, string filePath, bool makeBackup)
+        {
+            if (makeBackup)
+            {
+                var bakPath = filePath + ".bak";
+
+                if (File.Exists(filePath))
+                {
+                    File.Move(filePath, bakPath, true);
+                }
+            }           
+
+            var serializerOptions = new JsonSerializerOptions()
+            {
+                WriteIndented = false
+            };
+
+            var outputString = jsonObject.ToJsonString(serializerOptions);
+
+            File.WriteAllText(filePath, outputString);
+        }
     }
 }
