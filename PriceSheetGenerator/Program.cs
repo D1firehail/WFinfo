@@ -201,7 +201,7 @@ namespace PriceSheetGenerator
                 var processPath = Environment.ProcessPath;
                 var processDir = Path.GetDirectoryName(processPath) ?? throw new Exception("processDir unknown");
 
-                outputPath = Path.Combine(processDir, "output.json");
+                outputPath = Path.Combine(processDir, "prices.json");
             }
 
             var fullOutputPath = Path.GetFullPath(outputPath);
