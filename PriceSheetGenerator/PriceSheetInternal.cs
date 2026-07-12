@@ -53,7 +53,7 @@ namespace PriceSheetGenerator
                 return false;
             }
 
-            var startIndex = m_NextIndex;
+            var startIndex = m_NextIndex % m_Entries.Count;
             var startItem = startIndex < m_Entries.Count ? m_Entries[startIndex] : null;
 
             if (startItem is not null && !startItem.IsDeleted)
