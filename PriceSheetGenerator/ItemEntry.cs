@@ -199,9 +199,15 @@ namespace PriceSheetGenerator
 
             var customVolume = todayVolume + yesterdayVolume + movingAvgInfluence;
 
-            var customPrice = priceSum / customVolume;
-
-            WriteStats(yesterdayVolume, todayVolume, customPrice);
+            if (customVolume == 0)
+            {
+                WipeStats();
+            }
+            else
+            {
+                var customPrice = priceSum / customVolume;
+                WriteStats(yesterdayVolume, todayVolume, customPrice);
+            }
         }
 
         public static void ParseFromWfmItem(JsonObject obj, out string id, out string slug, out string name)
