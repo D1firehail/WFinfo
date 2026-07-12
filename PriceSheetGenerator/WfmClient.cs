@@ -69,14 +69,14 @@ namespace PriceSheetGenerator
 
                     return node;
                 }
-                catch (TaskCanceledException ex)
+                catch (TaskCanceledException ex) when (cancellationToken.IsCancellationRequested) // avoid request timeout leading here
                 {
                     // "graceful" exit
 
                     SetDelaySuccess();
                     return null;
                 }
-                catch (OperationCanceledException ex)
+                catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested) // avoid request timeout leading here
                 {
                     // "graceful" exit
 
