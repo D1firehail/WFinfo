@@ -169,6 +169,13 @@ namespace AllFilteredGenerator
 
                     if (relic != null)
                     {
+                        if (relics.Any(x => x.EraName == relic.EraName && x.NameInEra == relic.NameInEra))
+                        {
+                            // filter out duplicate relic names (due to DE mistake)
+                            Console.WriteLine("Skipping duplicate of " + name);
+                            errors.Add(name + " DUPLICATE IN SOURCE DATA");
+                            continue;
+                        }
                         relics.Add(relic);
                     }
 

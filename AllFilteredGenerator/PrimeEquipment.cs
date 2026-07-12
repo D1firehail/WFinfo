@@ -8,6 +8,7 @@ namespace AllFilteredGenerator
     /// </summary>
     public class PrimeEquipment
     {
+        private static readonly List<string> ExcludedPrimes = ["Galariak Prime", "Sagek Prime"];
         private PrimeEquipment(string name, string itemTpye, List<PrimeComponent> parts, List<IndependentPrimeComponent> independentParts)
         {
             Name = name;
@@ -98,6 +99,12 @@ namespace AllFilteredGenerator
 
         public static PrimeEquipment? TryParse(string name, JsonObject elemObj, List<string> errors)
         {
+            if (ExcludedPrimes.Contains(name))
+            {
+                Console.WriteLine("Skipping due to blacklist: " + name);
+                return null;
+            }
+
             var parts = new List<PrimeComponent>();
             var independentParts = new List<IndependentPrimeComponent>();
 
