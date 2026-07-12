@@ -57,10 +57,9 @@ namespace PriceSheetGenerator
                     await Task.Delay(timeDiff, cancellationToken).ConfigureAwait(false);
                 }
 
-                HttpResponseMessage response;
                 try
                 {
-                    response = await m_Client.GetAsync(endpoint, cancellationToken).ConfigureAwait(false);
+                    using var response = await m_Client.GetAsync(endpoint, cancellationToken).ConfigureAwait(false);
                     response.EnsureSuccessStatusCode(); 
                     var responseString = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
